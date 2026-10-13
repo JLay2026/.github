@@ -47,6 +47,9 @@ Starters: [`templates/workflows/`](templates/workflows/). Dockerfile:
 | gitleaks | 8.30.1 | `actions/gitleaks` (asset SHA-256) |
 | cosign / syft | v3.1.3 / v1.54.1 | `actions/sign-attest-verify` |
 
+The tools lock is audited by `ci.yml` on every change here and by `audit.yml` every Monday,
+so a new advisory against a tool every adopter installs surfaces within a week.
+
 ## Releases of this repository
 
 Tagged `vX.Y.Z`. A change to any action's behaviour is a new minor version with a note

@@ -1,0 +1,32 @@
+---
+name: Audit
+
+# The shared tools lock (ruff, pip-audit, zizmor) is what every adopter's CI installs, but
+# ci.yml audits it only when this repository changes. This re-audits it weekly, so an
+# advisory published after the last change here still surfaces (#4). Nothing else runs.
+# workflow_dispatch runs it on demand.
+
+on:
+  schedule:
+    - cron: '23 10 * * 1'  # Mondays 10:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pip-audit:
+    name: pip-audit (weekly)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/actions/pip-audit
+        with:
+          locks: actions/python-tools/requirements-tools.txt
