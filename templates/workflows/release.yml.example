@@ -1,0 +1,57 @@
+---
+name: Release
+# Starter: copy to .github/workflows/release.yml. The signing step runs in THIS job, so the
+# cosign certificate names this repository's release.yml -- verify with
+#   --certificate-identity-regexp '^https://github\.com/<owner>/<repo>/\.github/workflows/release\.yml@refs/tags/v'
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/<owner>/<repo>
+
+jobs:
+  test:
+    uses: $/.github/workflows/ci.yml
+    secrets:
+      DHI_USERNAME: ${{ secrets.DHI_USERNAME }}
+      DHI_TOKEN: ${{ secrets.DHI_TOKEN }}
+
+  publish:
+    needs: test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: guard
+        uses: JLay2026/.github/actions/release-guard@<SHA>  # v1.0.0
+      - uses: JLay2026/.github/actions/dhi-login@<SHA>  # v1.0.0
+        with:
+          username: ${{ secrets.DHI_USERNAME }}
+          token: ${{ secrets.DHI_TOKEN }}
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: push
+        env:
+          VERSION: ${{ steps.guard.outputs.version }}
+        run: |
+          docker build --pull=false -t "$IMAGE:$VERSION" .
+          docker push "$IMAGE:$VERSION"
+          echo "ref=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$VERSION")" >> "$GITHUB_OUTPUT"
+      - uses: JLay2026/.github/actions/sign-attest-verify@<SHA>  # v1.0.0
+        with:
+          ref: ${{ steps.push.outputs.ref }}
+          version: ${{ steps.guard.outputs.version }}

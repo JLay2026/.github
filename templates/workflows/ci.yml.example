@@ -1,0 +1,66 @@
+---
+name: CI
+# Starter: copy to .github/workflows/ci.yml, replace <SHA> with the commit of the
+# JLay2026/.github release you adopt (keep the "# vX.Y.Z" comment), and fill in the
+# repository's own test and image jobs.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_call:
+    secrets:
+      DHI_USERNAME:
+        required: true
+      DHI_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - id: tools
+        uses: JLay2026/.github/actions/python-tools@<SHA>  # v1.0.0
+      - env:
+          BIN: ${{ steps.tools.outputs.bin }}
+        run: '"$BIN/ruff" check .'
+
+  supply-chain:
+    name: pip-audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: JLay2026/.github/actions/pip-audit@<SHA>  # v1.0.0
+        with:
+          locks: requirements.txt requirements-dev.txt
+
+  workflow-security:
+    name: zizmor
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: JLay2026/.github/actions/zizmor@<SHA>  # v1.0.0
+
+  secrets:
+    name: gitleaks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: JLay2026/.github/actions/gitleaks@<SHA>  # v1.0.0
+
+  # test: <the repository's own, from its hash-pinned dev lock>
+  # image: <dhi-login, docker build, the repository's own smoke>

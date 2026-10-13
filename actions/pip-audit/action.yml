@@ -1,0 +1,33 @@
+name: pip-audit
+description: >-
+  Audit hash-pinned Python locks against the PyPI advisory database (strict, hashes required).
+  An accepted finding goes in the ignore file, one per line: "<VULN-ID> <reason>".
+inputs:
+  locks:
+    description: Space-separated lock files, relative to the repository root.
+    required: true
+  ignore-file:
+    description: Accepted findings. Missing file means none.
+    default: .github/ci/pip-audit-ignore.txt
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        LOCKS: ${{ inputs.locks }}
+        IGNORE_FILE: ${{ inputs.ignore-file }}
+      run: |
+        bin="$(bash "$GITHUB_ACTION_PATH/../python-tools/install.sh")"
+        ignores=()
+        if [[ -f "$IGNORE_FILE" ]]; then
+          while read -r id _; do
+            [[ -z "$id" || "$id" == \#* ]] && continue
+            ignores+=(--ignore-vuln "$id")
+          done < "$IGNORE_FILE"
+        fi
+        read -r -a locks <<< "$LOCKS"
+        for req in "${locks[@]}"; do
+          echo "== $req"
+          "$bin/pip-audit" --strict --disable-pip --require-hashes --progress-spinner off \
+            "${ignores[@]}" -r "$req"
+        done

@@ -1,0 +1,16 @@
+name: zizmor
+description: Offline zizmor audit of the repository's workflows (and local actions, if any).
+inputs:
+  paths:
+    description: Space-separated paths to audit.
+    default: .github/workflows
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        PATHS: ${{ inputs.paths }}
+      run: |
+        bin="$(bash "$GITHUB_ACTION_PATH/../python-tools/install.sh")"
+        read -r -a paths <<< "$PATHS"
+        "$bin/zizmor" --offline --format plain "${paths[@]}"
