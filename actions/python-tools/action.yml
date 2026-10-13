@@ -1,0 +1,16 @@
+name: python-tools
+description: >-
+  Hash-pinned ruff, pip-audit and zizmor in a venv under RUNNER_TEMP (JLay2026 standard).
+  One lock, here, for every repository.
+outputs:
+  bin:
+    description: Directory holding ruff, pip-audit and zizmor.
+    value: ${{ steps.tools.outputs.bin }}
+runs:
+  using: composite
+  steps:
+    - id: tools
+      shell: bash
+      run: |
+        bin="$(bash "$GITHUB_ACTION_PATH/install.sh")"
+        echo "bin=$bin" >> "$GITHUB_OUTPUT"

@@ -1,0 +1,5 @@
+# Shared CI tools (JLay2026 standard). Regenerate:
+#   uv pip compile actions/python-tools/requirements-tools.in --generate-hashes --python-version 3.12 --python-platform x86_64-manylinux_2_28 -o actions/python-tools/requirements-tools.txt
+ruff
+pip-audit
+zizmor

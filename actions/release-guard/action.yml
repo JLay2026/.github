@@ -1,0 +1,38 @@
+name: release-guard
+description: >-
+  Refuse to release a tag that is not on the default branch, or whose name is not "v" plus the
+  package version. The caller checks out with fetch-depth 0.
+inputs:
+  version-file:
+    description: File holding `__version__ = "X.Y.Z"`.
+    default: src/__init__.py
+  pyproject:
+    description: pyproject.toml whose [project] version must also match; empty to skip.
+    default: pyproject.toml
+  branch:
+    description: The branch a release tag must be on.
+    default: main
+outputs:
+  version:
+    description: The released version, without the leading "v".
+    value: ${{ steps.guard.outputs.version }}
+runs:
+  using: composite
+  steps:
+    - id: guard
+      shell: bash
+      env:
+        VERSION_FILE: ${{ inputs.version-file }}
+        PYPROJECT: ${{ inputs.pyproject }}
+        BRANCH: ${{ inputs.branch }}
+      run: |
+        git merge-base --is-ancestor "$GITHUB_SHA" "origin/$BRANCH" \
+          || { echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on $BRANCH"; exit 1; }
+        v="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' "$VERSION_FILE")"
+        [[ -n "$v" ]] || { echo "::error::no __version__ in $VERSION_FILE"; exit 1; }
+        test "v$v" = "$GITHUB_REF_NAME" || { echo "::error::tag $GITHUB_REF_NAME but __version__ $v"; exit 1; }
+        if [[ -n "$PYPROJECT" ]]; then
+          p="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$PYPROJECT")"
+          test "$v" = "$p" || { echo "::error::__version__ $v but $PYPROJECT $p"; exit 1; }
+        fi
+        echo "version=$v" >> "$GITHUB_OUTPUT"

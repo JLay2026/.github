@@ -1,0 +1,38 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "JLay2026 Renovate preset: extend with \"github>JLay2026/.github//renovate/default\". Digest pins everywhere, nothing automerges. dhi.io credentials come from the runner's hostRules, never from this file.",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "automerge": false,
+  "platformAutomerge": false,
+  "dependencyDashboard": true,
+  "prConcurrentLimit": 5,
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Docker base images: digest refreshes flow; the Python line moves by a deliberate edit, not a bot PR.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["dhi.io/python"],
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false
+    },
+    {
+      "description": "Node build images held at their LTS major.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["dhi.io/node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "CI runner image held at ubuntu-24.04 LTS.",
+      "matchDatasources": ["github-runners"],
+      "matchPackageNames": ["ubuntu"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "This repository's actions are bumped together, with their release notes read.",
+      "matchPackageNames": ["JLay2026/.github"],
+      "groupName": "JLay2026 shared actions"
+    }
+  ]
+}

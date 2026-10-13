@@ -1,0 +1,35 @@
+name: gitleaks
+description: >-
+  gitleaks over the commits a PR or push adds, binary pinned by the release asset's SHA-256.
+  Rules (.gitleaks.toml, .gitleaksignore) come from the base branch for a PR, so a PR cannot
+  widen its own exemptions. The caller checks out with fetch-depth 0.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GITLEAKS_VERSION: 8.30.1
+        # GitHub's digest for gitleaks_8.30.1_linux_x64.tar.gz, read 2026-10-13.
+        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        EVENT: ${{ github.event_name }}
+        PR_BASE: ${{ github.event.pull_request.base.sha }}
+        PUSH_BEFORE: ${{ github.event.before }}
+      run: |
+        curl -fsSLo "$RUNNER_TEMP/gitleaks.tgz" \
+          "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+        echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/gitleaks.tgz" | sha256sum -c -
+        tar -xzf "$RUNNER_TEMP/gitleaks.tgz" -C "$RUNNER_TEMP" gitleaks
+        if [[ "$EVENT" == pull_request ]]; then
+          range="$PR_BASE..HEAD"; rules="$PR_BASE"
+        elif [[ -n "$PUSH_BEFORE" && "$PUSH_BEFORE" != 0000000000000000000000000000000000000000 ]]; then
+          range="$PUSH_BEFORE..HEAD"; rules=HEAD
+        else
+          range="HEAD~1..HEAD"; rules=HEAD
+        fi
+        rd="$RUNNER_TEMP/gitleaks-rules"; mkdir -p "$rd"
+        git show "$rules:.gitleaks.toml" > "$rd/config.toml" 2>/dev/null \
+          || printf '[extend]\nuseDefault = true\n' > "$rd/config.toml"
+        git show "$rules:.gitleaksignore" > "$rd/.gitleaksignore" 2>/dev/null || : > "$rd/.gitleaksignore"
+        echo "scanning $range with the rules at $rules"
+        "$RUNNER_TEMP/gitleaks" git --no-banner --redact --log-opts="$range" \
+          --config "$rd/config.toml" --gitleaks-ignore-path "$rd" .

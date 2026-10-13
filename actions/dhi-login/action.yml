@@ -1,0 +1,24 @@
+name: dhi-login
+description: >-
+  Log the runner's Docker in to dhi.io (Docker Hardened Images need a login even on the free
+  tier). Fails with a clear message when the credentials are empty or not passed to the run.
+inputs:
+  username:
+    description: Docker ID with read access (pass secrets.DHI_USERNAME).
+    required: true
+  token:
+    description: Read-only personal access token (pass secrets.DHI_TOKEN).
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        DHI_USERNAME: ${{ inputs.username }}
+        DHI_TOKEN: ${{ inputs.token }}
+      run: |
+        if [[ -z "$DHI_USERNAME" || -z "$DHI_TOKEN" ]]; then
+          echo "::error::DHI_USERNAME / DHI_TOKEN are empty or not available to this run"
+          exit 1
+        fi
+        printf '%s' "$DHI_TOKEN" | docker login dhi.io -u "$DHI_USERNAME" --password-stdin

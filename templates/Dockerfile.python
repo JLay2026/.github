@@ -1,0 +1,31 @@
+# <service>: one non-root Python process. JLay2026 base-image policy (docs/base-image-policy.md):
+# Docker Hardened Images, pinned by index digest; the tag beside each digest is for people.
+# Replace every <...>. Digests: `docker buildx imagetools inspect dhi.io/<image>:<tag>`.
+# The runtime stage has no shell and no pip: everything it needs is copied in.
+
+# --- Python dependencies: hash-pinned wheels only ---------------------------------
+FROM dhi.io/python:3.12-dev@sha256:<digest> AS deps
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+COPY requirements.txt /tmp/requirements.txt
+# --target, not a venv: a venv records the interpreter path, which the runtime image
+# need not share with the -dev image. /stage/data becomes a uid-owned data dir.
+RUN python -m pip install --require-hashes --only-binary=:all: --no-deps \
+        --target /deps -r /tmp/requirements.txt \
+    && mkdir -p /stage/data
+
+# --- runtime ----------------------------------------------------------------------
+FROM dhi.io/python:3.12@sha256:<digest>
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/deps:/app
+WORKDIR /app
+COPY --from=deps /deps ./deps
+COPY <package> ./<package>
+COPY --from=deps --chown=<uid>:<uid> /stage/data ./data
+USER <uid>:<uid>
+EXPOSE <port>
+VOLUME ["/app/data"]
+HEALTHCHECK --interval=60s --timeout=5s --start-period=20s --retries=3 \
+    CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:<port>/<health>', timeout=4).status == 200 else 1)"]
+ENTRYPOINT ["python", "-m", "<package>"]
