@@ -1,0 +1,26 @@
+Copyright (c) 2026 Jason Layman. All rights reserved.
+
+The contents of this repository (JLay2026/.github: the composite actions, scripts,
+templates, Renovate preset, policy and documentation) are proprietary. No licence of any
+kind is granted by this file, by the repository's visibility, or by the act of making a
+copy available. Without the copyright holder's prior written permission you may not use,
+copy, modify, merge, publish, distribute, sublicense or sell any part of it, and no patent,
+trademark or other right is granted by implication, estoppel or otherwise.
+
+The repository is public so that repositories owned by the GitHub account JLay2026 -- the
+copyright holder's own account -- can call its actions, whatever their visibility. Public
+visibility grants only what GitHub's Terms of Service require (viewing and forking on
+GitHub); it does not permit referencing these actions from, or copying them into,
+repositories not owned by JLay2026. Any licence to do so will be a separate written
+agreement that names the licensee, the release (a tagged version) and the terms.
+
+Third-party tools that these actions download or invoke at run time (among them ruff,
+pip-audit, zizmor, gitleaks, cosign, syft and the GitHub Actions they pin) are not covered
+by this notice and are not redistributed here. Each remains under its own licence.
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

@@ -4,6 +4,10 @@ Shared CI building blocks, templates and defaults for JLay2026 repositories. Pub
 purpose: public and private repositories both call it. Generic plumbing only — nothing
 product-specific, no infrastructure details, no secret values.
 
+**Proprietary — all rights reserved** ([LICENSE](LICENSE)). Public visibility does not
+license use: referencing these actions from repositories not owned by JLay2026 requires
+written permission.
+
 ## Composite actions
 
 | Action | What it does |
