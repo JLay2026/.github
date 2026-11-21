@@ -1,0 +1,21 @@
+# Dependabot opens no pull requests for the shared tools lock.
+#
+# actions/python-tools/requirements-tools.txt is resolved for CPython 3.12 and
+# hash-pinned; install.sh installs it with --require-hashes. Dependabot
+# re-resolves the file without the header's --python-version, which drops
+# pins the runner needs (#6 lost typing-extensions and pip). The lock is
+# bumped by hand with the command in its header instead.
+#
+# Dependabot alerts still arrive, and the weekly Audit workflow fails when a
+# pin has a known vulnerability.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /actions/python-tools
+    schedule:
+      interval: weekly
+    # Zero keeps this entry from turning version updates on.
+    open-pull-requests-limit: 0
+    # Covers security updates too.
+    ignore:
+      - dependency-name: "*"
